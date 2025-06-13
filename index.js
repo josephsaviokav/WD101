@@ -1,17 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Load existing users on page load
     loadUsers();
 
     const form = document.getElementById('registrationForm');
 
-    if (!form) {
-        console.error('Form not found!');
-        return;
-    }
-
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // Form values
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -19,64 +14,66 @@ document.addEventListener('DOMContentLoaded', function () {
         const dob = new Date(dobInput.value);
         const termsAccepted = document.getElementById('terms').checked;
 
-        // Required field check
-        if (!name || !email || !password || !dobInput.value) {
-            alert('Please fill in all required fields');
+        if (!name || !email || !password || !dobInput.value || !termsAccepted) {
+            alert('Please complete all fields and accept the terms.');
             return;
         }
 
-        // Age validation (18–55)
+        // Age validation
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
-        const monthDiff = today.getMonth() - dob.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
             age--;
         }
 
         if (age < 18 || age > 55) {
-            alert('You must be between 18 and 55 years old to register.');
+            alert("You must be between 18 and 55 years old to register.");
             return;
         }
 
-        const formattedDob = dob.toISOString().split('T')[0];
+        const formattedDob = dob.toISOString().split("T")[0];
 
         const user = {
             name,
             email,
             password,
             dob: formattedDob,
-            termsAccepted
+            termsAccepted: termsAccepted ? "Yes" : "No"
         };
 
+        // Save to localStorage
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        users.push(user);
+        localStorage.setItem("users", JSON.stringify(users));
+
+        // Add to table immediately
         addUserToTable(user);
-        saveUser(user);
+
+        // Reset form
         form.reset();
     });
 });
 
 function addUserToTable(user) {
-    const tableBody = document.getElementById('tableBody');
-    if (!tableBody) return;
+    const tableBody = document.getElementById("tableBody");
 
-    const row = tableBody.insertRow();
-    row.insertCell(0).textContent = user.name;
-    row.insertCell(1).textContent = user.email;
-    row.insertCell(2).textContent = user.password;
-    row.insertCell(3).textContent = user.dob;
-    row.insertCell(4).textContent = user.termsAccepted ? "Yes" : "No";
-}
+    const row = document.createElement("tr");
 
-function saveUser(user) {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    users.push(user);
-    localStorage.setItem('users', JSON.stringify(users));
+    row.innerHTML = `
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.password}</td>
+        <td>${user.dob}</td>
+        <td>${user.termsAccepted}</td>
+    `;
+
+    tableBody.appendChild(row);
 }
 
 function loadUsers() {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const tableBody = document.getElementById('tableBody');
-    if (!tableBody) return;
-
-    tableBody.innerHTML = ''; // Clear table before loading
-    users.forEach(user => addUserToTable(user));
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    users.forEach(user => {
+        addUserToTable(user);
+    });
 }
