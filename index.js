@@ -1,38 +1,34 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Load any saved users
+document.addEventListener('DOMContentLoaded', function () {
     loadUsers();
 
-    // Get the form element
     const form = document.getElementById('registrationForm');
-    
+
     if (!form) {
-        console.error('Form element not found!');
+        console.error('Form not found!');
         return;
     }
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
-        console.log('Form submitted!'); // Check if this appears in console
 
-        // Get form values
+        // Form values
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const dobInput = document.getElementById('dob');
+        const dob = new Date(dobInput.value);
         const termsAccepted = document.getElementById('terms').checked;
 
-        // Validate required fields
+        // Required field check
         if (!name || !email || !password || !dobInput.value) {
             alert('Please fill in all required fields');
             return;
         }
 
-        // Age validation (18-55 years)
-        const dob = new Date(dobInput.value);
+        // Age validation (18–55)
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
         const monthDiff = today.getMonth() - dob.getMonth();
-        
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
             age--;
         }
@@ -42,10 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Format date for display
         const formattedDob = dob.toISOString().split('T')[0];
 
-        // Create user object
         const user = {
             name,
             email,
@@ -54,32 +48,26 @@ document.addEventListener('DOMContentLoaded', function() {
             termsAccepted
         };
 
-        // Add to table and storage
         addUserToTable(user);
         saveUser(user);
-
-        // Reset form
         form.reset();
     });
 });
 
 function addUserToTable(user) {
     const tableBody = document.getElementById('tableBody');
-    if (!tableBody) {
-        console.error('Table body not found!');
-        return;
-    }
-    
-    const newRow = tableBody.insertRow();
-    newRow.insertCell(0).textContent = user.name;
-    newRow.insertCell(1).textContent = user.email;
-    newRow.insertCell(2).textContent = user.password;
-    newRow.insertCell(3).textContent = user.dob;
-    newRow.insertCell(4).textContent = user.termsAccepted;
+    if (!tableBody) return;
+
+    const row = tableBody.insertRow();
+    row.insertCell(0).textContent = user.name;
+    row.insertCell(1).textContent = user.email;
+    row.insertCell(2).textContent = user.password;
+    row.insertCell(3).textContent = user.dob;
+    row.insertCell(4).textContent = user.termsAccepted ? "Yes" : "No";
 }
 
 function saveUser(user) {
-    let users = JSON.parse(localStorage.getItem('users')) || [];
+    const users = JSON.parse(localStorage.getItem('users')) || [];
     users.push(user);
     localStorage.setItem('users', JSON.stringify(users));
 }
@@ -87,8 +75,8 @@ function saveUser(user) {
 function loadUsers() {
     const users = JSON.parse(localStorage.getItem('users')) || [];
     const tableBody = document.getElementById('tableBody');
-    
-    if (tableBody) {
-        users.forEach(user => addUserToTable(user));
-    }
+    if (!tableBody) return;
+
+    tableBody.innerHTML = ''; // Clear table before loading
+    users.forEach(user => addUserToTable(user));
 }
